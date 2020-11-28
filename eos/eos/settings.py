@@ -74,7 +74,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'OPTIONS': {
-            'options': '-c search_path=eos_final,public'
+            'options': '-c search_path=eos,public'
         },
         'NAME': 'gis',
         'USER': 'postgres',

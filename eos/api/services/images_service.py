@@ -20,14 +20,14 @@ def download_images(request, id):
                         Box2d(ST_Transform(shape, 4326)),
                         cropper_ref,
                         polygon_id
-                    FROM eos_final.api_polygons {};
+                    FROM eos.api_polygons {};
                 """.format(add_query))
     for i, (bounding_box, cpr, pid) in enumerate(query_data):
         filenames = select_many("""
                 SELECT 
                     filename
                 FROM
-                    eos_final.api_images
+                    eos.api_images
                 WHERE
                     polygon_id={};
             """.format(pid))
@@ -44,12 +44,12 @@ def download_images(request, id):
                         SELECT
                             view_id
                         FROM
-                            eos_final.api_view_id
+                            eos.api_view_id
                         WHERE
                             polygon_id = {};
                     """.format(pid))
 
-        shape_dir = f'download_images/shape{pid}'
+        shape_dir = f'eos_images/shape{pid}'
         os.makedirs(shape_dir, exist_ok=True)
         logger.info(f'Destination Folder {shape_dir} FOUND: {len(search_data)}\n\n')
         for k, view_id in enumerate(search_data):
@@ -65,7 +65,7 @@ def download_images(request, id):
                     logger.info(dst)
                     insert("""
                         INSERT INTO
-                            eos_final.api_images (polygon_id, path, filename, web_url, date)
+                            eos.api_images (polygon_id, path, filename, web_url, date)
                         VALUES
                             ({}, '{}', '{}', '{}', '{}')
                         ON CONFLICT ON CONSTRAINT image_cnt
@@ -76,7 +76,7 @@ def download_images(request, id):
                     logger.error("Error | reported")
                     insert("""
                                 INSERT INTO
-                                    eos_final.api_images (polygon_id, path, filename, web_url, date)
+                                    eos.api_images (polygon_id, path, filename, web_url, date)
                                 VALUES
                                     ({}, '{}', '{}', '{}', '{}')
                                 ON CONFLICT ON CONSTRAINT image_cnt
@@ -94,7 +94,7 @@ def conflict_images(request):
         SELECT
             *
         FROM
-            eos_final.api_images
+            eos.api_images
         WHERE
             filename = 'ED';
     """)
@@ -102,11 +102,11 @@ def conflict_images(request):
     for data in bug_images:
         filename = data[5].split('.com/')[1].split('/(NIR-RED)')[0].replace('/','_')
         filename = f'image-{data[4]}-{filename}.png'
-        path = f'download_images/shape{data[4]}'
+        path = f'eos_images/shape{data[4]}'
         logger.info(path, filename)
         insert("""
             UPDATE
-                eos_final.api_images
+                eos.api_images
             SET
                 path = '{}', filename = '{}'
         """.format(path, filename))
@@ -114,7 +114,7 @@ def conflict_images(request):
         SELECT
             path, filename, web_url
         FROM
-            eos_final.api_images;
+            eos.api_images;
     """)
     count = 0
     for i, (path, filename, web_url) in enumerate(query_data):

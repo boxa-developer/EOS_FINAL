@@ -1,0 +1,78 @@
+    body {
+        background: rgb(70, 70, 71);
+        background: linear-gradient(172deg, rgba(70, 70, 71, 1) 0%, rgba(28, 32, 44, 1) 100%);
+    }
+    
+    * {
+        font-family: 'Nunito', sans-serif;
+    }
+    
+    .login-color {
+        background: #141824;
+        height: 35vh;
+        width: 50vh;
+        opacity: 0.9;
+    }
+    
+    .login-text {
+        text-align: center;
+        color: seashell;
+    }
+    
+    .login-wrapper {
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        position: absolute;
+        border-radius: 8px;
+    }
+    
+    .form-button {
+        background-color: #285F6F;
+        color: #EAF2F8;
+        border-radius: 4px;
+        outline: none;
+        border: none;
+        width: 40%;
+        height: 5vh;
+        position: absolute;
+        top: 80%;
+        left: 50%;
+        font-size: large;
+        transform: translate(-50%, -50%);
+    }
+    
+    .form-button:hover {
+        background-color: #3c6a79;
+    }
+    
+    .form-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 50%;
+    }
+    
+    .form-wrapper>input {
+        width: 25vh;
+        margin: 5px auto;
+        color: rgba(219, 219, 219, 0.7);
+    }
+    
+    .form-wrapper>input {
+        background-color: #000000;
+        padding: 5px;
+        font-size: large;
+        text-align: center;
+        color: rgb(255, 255, 255);
+        border: none;
+        border-bottom: #285F6F 2px solid;
+        border-radius: 4px;
+    }
+    
+    .form-wrapper::placeholder-shown {
+        color: seashell;
+    }
+    
+    .admin-logo {
+        transform: scale(0.6);
+    }

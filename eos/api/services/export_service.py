@@ -7,19 +7,6 @@ from loguru import logger
 import requests
 import json
 
-'''
-fermer_id integer NOT NULL,
-    feature_data jsonb,
-    shape geometry,
-    cropper_ref text COLLATE pg_catalog."default",
-    polygon_type bytea,
-    polygon_id integer,
-    id integer DEFAULT nextval('eos_final.id'::regclass),
-    collection jsonb
-    
-
-'''
-
 
 @api_view(["POST"])
 def export_polygons(request):
@@ -75,7 +62,7 @@ def export_polygons(request):
         cpr = cropper_request.json()["cropper_ref"]
         logger.info(f"CPR: {cpr}!")
         insert("""
-            INSERT INTO eos_final.api_polygons
+            INSERT INTO eos.api_polygons
                 (polygon_id, fermer_id, feature_data,
                 polygon_type, shape, area, cropper_ref)
             VALUES
@@ -96,7 +83,7 @@ def explore_views(request):
                 feature_data::json->'geometry',
                 polygon_id
             FROM
-                eos_final.api_polygons
+                eos.api_polygons
             ORDER BY 
                 polygon_id ASC;
         """)
@@ -105,11 +92,10 @@ def explore_views(request):
         get_views = select_many("""
             SELECT
                 view_id
-            FROM eos_final.api_view_id
+            FROM eos.api_view_id
             WHERE polygon_id={}
             ORDER BY split_part(view_id, '/', 5), split_part(view_id, '/', 6), split_part(view_id, '/', 7) DESC   
         """.format(pid))
-
 
         search_data = {
             "search": {
@@ -129,14 +115,14 @@ def explore_views(request):
             json=search_data,
             headers=HEADERS["CONTENT"]
         )
-        
+
         logger.info(f"Found {search_request.json()['meta']['found']} results ...")
         count = 0
         for item in search_request.json()["results"]:
             count += 1
             insert("""
                 INSERT INTO
-                    eos_final.api_view_id (polygon_id, view_id)
+                    eos.api_view_id (polygon_id, view_id)
                 VALUES
                     ({}, '{}')
                 ON CONFLICT ON CONSTRAINT view_id_cnt

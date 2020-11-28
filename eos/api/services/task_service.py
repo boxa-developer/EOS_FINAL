@@ -15,7 +15,7 @@ def create_tasks_zero_type(request):
             polygon_id,
             Box2d(ST_Transform(shape, 4326))
         FROM
-            eos_final.api_polygons
+            eos.api_polygons
         WHERE
             fermer_id = {}
         ORDER BY 
@@ -39,7 +39,9 @@ def create_tasks_zero_type(request):
 
             }
         }
-
+        import time
+        if i % 10 == 0:
+            time.sleep(6)
         create_task_request = requests.post(
             url=f"https://gate.eos.com/api/gdw/api?api_key={ATTR['api_key']}",
             headers=HEADERS["CONTENT"],
@@ -48,7 +50,7 @@ def create_tasks_zero_type(request):
         logger.info(f"Response Accepted task_id: {create_task_request.json()['task_id']}!")
         insert("""
             INSERT INTO
-                eos_final.api_tasks (date, polygon_id, task_type, task_status, task_id)
+                eos.api_tasks (date, polygon_id, task_type, task_status, task_id)
             VALUES 
                 ( '{}', {}, {}, '{}', '{}' )
             ON CONFLICT ON CONSTRAINT task_cnt
@@ -57,6 +59,7 @@ def create_tasks_zero_type(request):
                    polygon_id, 0, 'created',
                    create_task_request.json()["task_id"]))
         logger.success("Successfully added to database!")
+
     return JsonResponse("DONE!", safe=False)
 
 
@@ -68,7 +71,7 @@ def create_tasks_one_type(request, stop_id):
             polygon_id,
             Box2d(ST_Transform(shape, 4326))
         FROM
-            eos_final.api_polygons
+            eos.api_polygons
         WHERE polygon_id>={}
         ORDER BY
             polygon_id ASC;
@@ -82,7 +85,7 @@ def create_tasks_one_type(request, stop_id):
             SELECT
                 view_id
             FROM
-                eos_final.api_view_id
+                eos.api_view_id
             WHERE
                 polygon_id = {};
         """.format(pid))
@@ -90,7 +93,7 @@ def create_tasks_one_type(request, stop_id):
                         SELECT 
                             date 
                         FROM 
-                            eos_final.api_tasks
+                            eos.api_tasks
                         WHERE
                             polygon_id={};                
                     """.format(pid))
@@ -110,15 +113,19 @@ def create_tasks_one_type(request, stop_id):
                     }
                 }
                 logger.info(f'Requested for {k + 1}/{len(search_data)} create task!')
+                print('1')
                 task_request = requests.post(
                     url=f"https://gate.eos.com/api/gdw/api?api_key={ATTR['api_key']}",
                     json=task_data,
                     headers=HEADERS['CONTENT']
                 )
+                print('2-', task_request.json())
+                while task_request is None:
+                    continue
                 logger.info(f'Response accepted task_id: {task_request.json()["task_id"]}')
                 insert("""
                     INSERT INTO
-                        eos_final.api_tasks (polygon_id, task_type, task_status, task_id, date)
+                        eos.api_tasks (polygon_id, task_type, task_status, task_id, date)
                     VALUES
                         ({}, {}, '{}', '{}', '{}')
                     ON CONFLICT ON CONSTRAINT task_cnt
@@ -126,6 +133,7 @@ def create_tasks_one_type(request, stop_id):
                 """.format(pid, 1, 'created', task_request.json()["task_id"], '-'.join(view_id[0].split('/')[4:-1])))
             else:
                 logger.info(f"Request #{k} exists in database!")
+
         logger.success(f"#{pid} finished!")
     return JsonResponse('ok', safe=False)
 

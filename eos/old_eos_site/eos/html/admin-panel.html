@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Admin Panel [eos]</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;1,200&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="login-wrapper login-color">
+        <form action="" method="post" class="form-wrapper">
+            <!-- <img src="{% static 'pics/admin.svg' %}" alt="" class="admin-logo"> -->
+            <h1 class="login-text">EOS-admin</h1>
+            <input type="text" name="login" id="login" placeholder="username">
+            <input type="password" name="password" id="password" placeholder="password">
+        </form>
+        <button type="submit" class="form-button">
+            <b>Kirish</b>
+        </button>
+    </div>
+</body>
+
+</html>

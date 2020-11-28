@@ -19,7 +19,7 @@ def collect_temperature_data(request, id):
             feature_data->'geometry',
             polygon_id
         FROM
-            eos_final.api_polygons
+            eos.api_polygons
         {}
     """.format(query_str))
 
@@ -29,7 +29,7 @@ def collect_temperature_data(request, id):
                         SELECT 
                             all_data::json->'dates'->0 l, all_data::json->'dates'->-1 f
                         FROM
-                            eos_final.api_data
+                            eos.api_data
                         WHERE
                             polygon_id={} AND data_type='temp';
                     """.format(pid))
@@ -60,7 +60,8 @@ def collect_temperature_data(request, id):
                     json=temp_data,
                     headers=HEADERS["CONTENT"]
                 )
-
+                import time
+                time.sleep(0.5)
                 temp_json = sorted(temp_request.json(), key=lambda k: k['date'])
                 save_data = {
                     'dates': [temp_json[i]["date"] for i in range(len(temp_json))],
@@ -69,7 +70,7 @@ def collect_temperature_data(request, id):
                 }
                 insert("""
                     UPDATE
-                        eos_final.api_data
+                        eos.api_data
                     SET
                         all_data = jsonb_set(   all_data::jsonb,
                                                 array['dates'],
@@ -77,7 +78,7 @@ def collect_temperature_data(request, id):
                 """.format(json.dumps(save_data['dates'])))
                 insert("""
                                     UPDATE
-                                        eos_final.api_data
+                                        eos.api_data
                                     SET
                                         all_data = jsonb_set(   all_data::jsonb,
                                                                 array['max'],
@@ -85,7 +86,7 @@ def collect_temperature_data(request, id):
                                 """.format(json.dumps(save_data['max'])))
                 insert("""
                                     UPDATE
-                                        eos_final.api_data
+                                        eos.api_data
                                     SET
                                         all_data = jsonb_set(   all_data::jsonb,
                                                                 array['min'],
@@ -114,7 +115,7 @@ def collect_temperature_data(request, id):
             }
             insert("""
                     INSERT INTO
-                        eos_final.api_data (polygon_id, date, data_type, all_data)
+                        eos.api_data (polygon_id, date, data_type, all_data)
                     VALUES
                         ({}, '{}','temp', '{}')
                     """.format(pid, data["date"], json.dumps(save_data)))
@@ -132,7 +133,7 @@ def collect_veg_data(request, id):
             task_id,
             polygon_id
         FROM
-            eos_final.api_tasks
+            eos.api_tasks
         WHERE task_type=0 {}
     """.format(query_str))
 
@@ -142,7 +143,7 @@ def collect_veg_data(request, id):
                         SELECT 
                             all_data::json->'dates'->0 l, all_data::json->'dates'->-1 f
                         FROM
-                            eos_final.api_data
+                            eos.api_data
                         WHERE
                             polygon_id={} AND data_type='veg';
                     """.format(pid))
@@ -165,15 +166,17 @@ def collect_veg_data(request, id):
 
                 logger.info("Requested!")
                 vegetation_request = requests.get(url=f"https://gate.eos.com/api/gdw/api/{task_id}?api_key={ATTR['api_key']}")
-
+                print(vegetation_request.content)
+                while vegetation_request.json() is None:
+                    print('waiting', end='-')
                 temp_json = sorted(vegetation_request.json(), key=lambda k: k['date'])
                 save_data = {
                     'dates': [temp_json[i]["date"] for i in range(len(temp_json))],
-                    'veg': [temp_json[i]["temperature_min"] for i in range(len(temp_json))],
+                    'veg': [temp_json[i]["average"] for i in range(len(temp_json))],
                 }
                 insert("""
                     UPDATE
-                        eos_final.api_data
+                        eos.api_data
                     SET
                         all_data = jsonb_set(   all_data::jsonb,
                                                 array['dates'],
@@ -181,7 +184,7 @@ def collect_veg_data(request, id):
                 """.format(json.dumps(save_data['dates'])))
                 insert("""
                                     UPDATE
-                                        eos_final.api_data
+                                        eos.api_data
                                     SET
                                         all_data = jsonb_set(   all_data::jsonb,
                                                                 array['veg'],
@@ -191,7 +194,7 @@ def collect_veg_data(request, id):
                 logger.info("All data available in database!")
         else:
             vegetation_request = requests.get(f'https://gate.eos.com/api/gdw/api/{task_id}?api_key={ATTR["api_key"]}')
-
+            print(vegetation_request.url)
             temp_json = sorted(vegetation_request.json()['result'], key=lambda k: k['date'])
             save_data = {
                 'dates': [temp_json[i]["date"] for i in range(len(temp_json))],
@@ -200,7 +203,7 @@ def collect_veg_data(request, id):
 
             insert("""
                     INSERT INTO
-                        eos_final.api_data (polygon_id, date, data_type, all_data)
+                        eos.api_data (polygon_id, date, data_type, all_data)
                     VALUES
                         ({}, '{}','veg', '{}')
                     """.format(pid, data["date"], json.dumps(save_data)))
@@ -218,7 +221,7 @@ def collect_area_data(request, id):
             polygon_id,
             date
         FROM
-            eos_final.api_tasks
+            eos.api_tasks
         WHERE task_type=1 {}
     """.format(query_str))
 
@@ -227,7 +230,7 @@ def collect_area_data(request, id):
             SELECT
                 date
             FROM
-                eos_final.api_data
+                eos.api_data
             WHERE
                 polygon_id = {}
         """.format(pid))
@@ -243,7 +246,7 @@ def collect_area_data(request, id):
 
                 insert("""
                         INSERT INTO
-                            eos_final.api_data (polygon_id, date, data_type, all_data)
+                            eos.api_data (polygon_id, date, data_type, all_data)
                         VALUES
                             ({}, '{}','area', '{}')
                         """.format(pid, date, json.dumps(save_data)))

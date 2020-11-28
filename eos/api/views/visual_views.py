@@ -14,14 +14,14 @@ def map_visual(request):
             SELECT 
                 cropper_ref, 
                 polygon_type  
-            FROM eos_final.api_polygons  
+            FROM eos.api_polygons  
             WHERE polygon_id={};
             """.format(data["pid"]))[0]
     view_id = select_one("""
         SELECT
             view_id
         FROM
-            eos_final.api_view_id
+            eos.api_view_id
         WHERE
             polygon_id={}
     """.format(data["pid"]))
@@ -44,7 +44,7 @@ def preview_visual(request):
         SELECT 
             path, filename, date
         FROM
-            eos_final.api_images
+            eos.api_images
         WHERE
             polygon_id={}
     """.format(data['pid']))
